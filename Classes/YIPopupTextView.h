@@ -67,4 +67,3 @@ typedef NS_ENUM(NSInteger, YIPopupTextViewButtonStyle) {
 - (void)dismiss;
 
 @end
-
