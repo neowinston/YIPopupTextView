@@ -10,9 +10,10 @@
 
 #define IS_IPAD             (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
 #define IS_PORTRAIT         UIInterfaceOrientationIsPortrait([UIApplication sharedApplication].statusBarOrientation)
+#define IS_IOS_AT_LEAST(ver)    ([[[UIDevice currentDevice] systemVersion] compare:ver] != NSOrderedAscending)
 
 #if defined(__IPHONE_7_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_7_0
-#   define IS_FLAT_DESIGN          (NSFoundationVersionNumber >= NSFoundationVersionNumber_iOS_7_0)
+#   define IS_FLAT_DESIGN          IS_IOS_AT_LEAST(@"7.0")
 #else
 #   define IS_FLAT_DESIGN          NO
 #endif
@@ -143,7 +144,7 @@ typedef enum {
 } CaretShiftDirection;
 
 
-@interface YIPopupTextView () <UIGestureRecognizerDelegate>
+@interface YIPopupTextView () <UIGestureRecognizerDelegate, CAAnimationDelegate>
 
 @property (nonatomic, weak) UIViewController* viewController;
 
@@ -425,7 +426,7 @@ typedef enum {
     [_popupView.layer addAnimation:animation forKey:@"popupAnimation"];
     
     [UIView animateWithDuration:ANIMATION_DURATION animations:^{
-        _backgroundView.alpha = 1;
+        self->_backgroundView.alpha = 1;
     }];
     
     [self _changePopupViewFrameWithNotification:nil];
@@ -465,7 +466,7 @@ typedef enum {
     
     [UIView animateWithDuration:ANIMATION_DURATION animations:^{
         
-        _backgroundView.alpha = 0;
+        self->_backgroundView.alpha = 0;
         
     } completion:^(BOOL finished) {
         
@@ -474,9 +475,9 @@ typedef enum {
                 [self.delegate popupTextView:self didDismissWithText:self.text cancelled:cancelled];
             }
             
-            [_backgroundView removeFromSuperview];
-            _backgroundView = nil;
-            _popupView = nil;
+            [self->_backgroundView removeFromSuperview];
+            self->_backgroundView = nil;
+            self->_popupView = nil;
         }
         
     }];
@@ -551,8 +552,8 @@ typedef enum {
         UINavigationBar* navBar = _viewController.navigationController.navigationBar;
         UIToolbar* toolbar = _viewController.navigationController.toolbar;
         UITabBar* tabBar = _viewController.tabBarController.tabBar;
-        
-        CGFloat statusBarHeight = (NSFoundationVersionNumber >= NSFoundationVersionNumber_iOS_8_0 || IS_PORTRAIT ? [UIApplication sharedApplication].statusBarFrame.size.height : [UIApplication sharedApplication].statusBarFrame.size.width);
+
+        CGFloat statusBarHeight = (IS_IOS_AT_LEAST(@"8.0") || IS_PORTRAIT ? [UIApplication sharedApplication].statusBarFrame.size.height : [UIApplication sharedApplication].statusBarFrame.size.width);
 
         CGFloat navBarHeight = (navBar && !navBar.hidden ? navBar.bounds.size.height : 0);
         CGFloat toolbarHeight = (toolbar && !toolbar.hidden ? toolbar.bounds.size.height : 0);
@@ -590,7 +591,7 @@ typedef enum {
             case UIInterfaceOrientationLandscapeLeft:
                 // keyboard at portrait-right
 
-                if (NSFoundationVersionNumber >= NSFoundationVersionNumber_iOS_8_0) {
+                if IS_IOS_AT_LEAST(@"8.0") {
                     popupViewHeight = keyboardRect.origin.y - bgOrigin.y - topMargin;
                 }
                 else {
@@ -599,7 +600,7 @@ typedef enum {
                 break;
             case UIInterfaceOrientationLandscapeRight:
                 // keyboard at portrait-left
-                if (NSFoundationVersionNumber >= NSFoundationVersionNumber_iOS_8_0) {
+                if IS_IOS_AT_LEAST(@"8.0") {
                     popupViewHeight = keyboardRect.origin.y - bgOrigin.y - topMargin;
                 }
                 else {
